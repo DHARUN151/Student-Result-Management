@@ -177,4 +177,332 @@ public class FacultySubjectDAO{
         }
         return list;
     }
+    public List<Map<String,Object>> getAssignedStudents(
+            int userId,int page,int pageSize){
+
+        List<Map<String,Object>> list=new ArrayList<>();
+
+        int offset=(page-1)*pageSize;
+
+        String sql="SELECT DISTINCT so.offering_id,"
+                +"st.student_id,st.reg_num,st.name,"
+                +"su.subject_code,su.subject_name,"
+                +"se.semester_number,ay.year_name "
+                +"FROM enterprise.faculty_subject fs "
+                +"JOIN enterprise.faculty f "
+                +"ON fs.faculty_id=f.faculty_id "
+                +"JOIN enterprise.users u "
+                +"ON u.faculty_id=f.faculty_id "
+                +"JOIN enterprise.subject_offerings so "
+                +"ON fs.offering_id=so.offering_id "
+                +"JOIN enterprise.subjects su "
+                +"ON so.subject_id=su.subject_id "
+                +"JOIN enterprise.semesters se "
+                +"ON so.semester_id=se.semester_id "
+                +"JOIN enterprise.academic_years ay "
+                +"ON so.academic_year_id=ay.academic_year_id "
+                +"JOIN enterprise.academic_details ad "
+                +"ON ad.current_semester_id=se.semester_id "
+                +"AND ad.program_id=se.program_id "
+                +"JOIN enterprise.students st "
+                +"ON st.student_id=ad.student_id "
+                +"WHERE u.user_id=? "
+                +"AND fs.status='ACTIVE' "
+                +"AND f.status='ACTIVE' "
+                +"AND su.status='ACTIVE' "
+                +"AND st.account_status='ACTIVE' "
+                +"ORDER BY so.offering_id,st.reg_num "
+                +"LIMIT ? OFFSET ?";
+
+        try(Connection con=DBConnection.getConnection();
+            PreparedStatement ps=con.prepareStatement(sql)){
+
+            ps.setInt(1,userId);
+            ps.setInt(2,pageSize);
+            ps.setInt(3,offset);
+
+            try(ResultSet rs=ps.executeQuery()){
+
+                while(rs.next()){
+
+                    Map<String,Object> row=new HashMap<>();
+
+                    row.put("offeringId",
+                            rs.getInt("offering_id"));
+
+                    row.put("studentId",
+                            rs.getInt("student_id"));
+
+                    row.put("regNum",
+                            rs.getString("reg_num"));
+
+                    row.put("name",
+                            rs.getString("name"));
+
+                    row.put("subjectCode",
+                            rs.getString("subject_code"));
+
+                    row.put("subjectName",
+                            rs.getString("subject_name"));
+
+                    row.put("semester",
+                            rs.getInt("semester_number"));
+
+                    row.put("yearName",
+                            rs.getString("year_name"));
+
+                    list.add(row);
+                }
+            }
+
+        }catch(Exception e){
+            System.out.println(
+                    "Error while getting assigned students");
+            System.out.println(e.getMessage());
+        }
+
+        return list;
+    }
+
+    public int getAssignedStudentsCount(int userId){
+
+        String sql="SELECT COUNT(*) "
+                +"FROM ("
+                +"SELECT DISTINCT so.offering_id,"
+                +"st.student_id "
+                +"FROM enterprise.faculty_subject fs "
+                +"JOIN enterprise.faculty f "
+                +"ON fs.faculty_id=f.faculty_id "
+                +"JOIN enterprise.users u "
+                +"ON u.faculty_id=f.faculty_id "
+                +"JOIN enterprise.subject_offerings so "
+                +"ON fs.offering_id=so.offering_id "
+                +"JOIN enterprise.subjects su "
+                +"ON so.subject_id=su.subject_id "
+                +"JOIN enterprise.semesters se "
+                +"ON so.semester_id=se.semester_id "
+                +"JOIN enterprise.academic_years ay "
+                +"ON so.academic_year_id=ay.academic_year_id "
+                +"JOIN enterprise.academic_details ad "
+                +"ON ad.current_semester_id=se.semester_id "
+                +"AND ad.program_id=se.program_id "
+                +"JOIN enterprise.students st "
+                +"ON st.student_id=ad.student_id "
+                +"WHERE u.user_id=? "
+                +"AND fs.status='ACTIVE' "
+                +"AND f.status='ACTIVE' "
+                +"AND su.status='ACTIVE' "
+                +"AND st.account_status='ACTIVE'"
+                +") assigned_students";
+
+        try(Connection con=DBConnection.getConnection();
+            PreparedStatement ps=con.prepareStatement(sql)){
+
+            ps.setInt(1,userId);
+
+            try(ResultSet rs=ps.executeQuery()){
+
+                if(rs.next()){
+                    return rs.getInt(1);
+                }
+            }
+
+        }catch(Exception e){
+            System.out.println(
+                    "Error while counting assigned students");
+            System.out.println(e.getMessage());
+        }
+
+        return 0;
+    }
+    public List<Map<String,Object>> getAssignedStudents(int userId,int page,int pageSize,String search,String subjectCode,String semester,String academicYear) {
+        List<Map<String,Object>> list=new ArrayList<>();
+
+        int offset=(page-1)*pageSize;
+
+        StringBuilder sql=new StringBuilder();
+
+        sql.append("SELECT DISTINCT ");
+        sql.append("so.offering_id,");
+        sql.append("st.student_id,");
+        sql.append("st.reg_num,");
+        sql.append("st.name,");
+        sql.append("su.subject_code,");
+        sql.append("su.subject_name,");
+        sql.append("se.semester_number,");
+        sql.append("ay.year_name ");
+        sql.append("FROM enterprise.faculty_subject fs ");
+        sql.append("JOIN enterprise.faculty f ON fs.faculty_id=f.faculty_id ");
+        sql.append("JOIN enterprise.users u ON u.faculty_id=f.faculty_id ");
+        sql.append("JOIN enterprise.subject_offerings so ON fs.offering_id=so.offering_id ");
+        sql.append("JOIN enterprise.subjects su ON so.subject_id=su.subject_id ");
+        sql.append("JOIN enterprise.semesters se ON so.semester_id=se.semester_id ");
+        sql.append("JOIN enterprise.academic_years ay ON so.academic_year_id=ay.academic_year_id ");
+        sql.append("JOIN enterprise.academic_details ad ");
+        sql.append("ON ad.current_semester_id=se.semester_id ");
+        sql.append("AND ad.program_id=se.program_id ");
+        sql.append("JOIN enterprise.students st ON st.student_id=ad.student_id ");
+        sql.append("WHERE u.user_id=? ");
+        sql.append("AND fs.status='ACTIVE' ");
+        sql.append("AND f.status='ACTIVE' ");
+        sql.append("AND so.status='ACTIVE' ");
+        sql.append("AND su.status='ACTIVE' ");
+        sql.append("AND st.account_status='ACTIVE' ");
+
+        List<Object> parameters=new ArrayList<>();
+        parameters.add(userId);
+
+        if(search!=null&&!search.trim().isEmpty()) {
+            sql.append("AND (LOWER(st.reg_num) LIKE LOWER(?) ");
+            sql.append("OR LOWER(st.name) LIKE LOWER(?)) ");
+
+            String value="%"+search.trim()+"%";
+
+            parameters.add(value);
+            parameters.add(value);
+        }
+
+        if(subjectCode!=null&&!subjectCode.trim().isEmpty()) {
+            sql.append("AND su.subject_code=? ");
+            parameters.add(subjectCode.trim());
+        }
+
+        if(semester!=null&&!semester.trim().isEmpty()) {
+            try {
+                int semesterNumber=Integer.parseInt(semester.trim());
+
+                sql.append("AND se.semester_number=? ");
+                parameters.add(semesterNumber);
+
+            } catch(NumberFormatException e) {
+                return list;
+            }
+        }
+
+        if(academicYear!=null&&!academicYear.trim().isEmpty()) {
+            sql.append("AND ay.year_name=? ");
+            parameters.add(academicYear.trim());
+        }
+
+        sql.append("ORDER BY so.offering_id,st.reg_num ");
+        sql.append("LIMIT ? OFFSET ?");
+
+        parameters.add(pageSize);
+        parameters.add(offset);
+
+        try(Connection con=DBConnection.getConnection();
+            PreparedStatement ps=con.prepareStatement(sql.toString())) {
+
+            for(int i=0;i<parameters.size();i++) {
+                ps.setObject(i+1,parameters.get(i));
+            }
+
+            try(ResultSet rs=ps.executeQuery()) {
+
+                while(rs.next()) {
+
+                    Map<String,Object> row=new HashMap<>();
+
+                    row.put("offeringId",rs.getInt("offering_id"));
+                    row.put("studentId",rs.getInt("student_id"));
+                    row.put("regNum",rs.getString("reg_num"));
+                    row.put("name",rs.getString("name"));
+                    row.put("subjectCode",rs.getString("subject_code"));
+                    row.put("subjectName",rs.getString("subject_name"));
+                    row.put("semester",rs.getInt("semester_number"));
+                    row.put("yearName",rs.getString("year_name"));
+
+                    list.add(row);
+                }
+            }
+
+        } catch(Exception e) {
+            System.out.println("Error while getting filtered assigned students");
+            System.out.println(e.getMessage());
+        }
+
+        return list;
+    }
+
+    public int getAssignedStudentCount(int userId,String search,String subjectCode,String semester,String academicYear) {
+        StringBuilder sql=new StringBuilder();
+
+        sql.append("SELECT COUNT(*) FROM (");
+        sql.append("SELECT DISTINCT so.offering_id,st.student_id ");
+        sql.append("FROM enterprise.faculty_subject fs ");
+        sql.append("JOIN enterprise.faculty f ON fs.faculty_id=f.faculty_id ");
+        sql.append("JOIN enterprise.users u ON u.faculty_id=f.faculty_id ");
+        sql.append("JOIN enterprise.subject_offerings so ON fs.offering_id=so.offering_id ");
+        sql.append("JOIN enterprise.subjects su ON so.subject_id=su.subject_id ");
+        sql.append("JOIN enterprise.semesters se ON so.semester_id=se.semester_id ");
+        sql.append("JOIN enterprise.academic_years ay ON so.academic_year_id=ay.academic_year_id ");
+        sql.append("JOIN enterprise.academic_details ad ");
+        sql.append("ON ad.current_semester_id=se.semester_id ");
+        sql.append("AND ad.program_id=se.program_id ");
+        sql.append("JOIN enterprise.students st ON st.student_id=ad.student_id ");
+        sql.append("WHERE u.user_id=? ");
+        sql.append("AND fs.status='ACTIVE' ");
+        sql.append("AND f.status='ACTIVE' ");
+        sql.append("AND so.status='ACTIVE' ");
+        sql.append("AND su.status='ACTIVE' ");
+        sql.append("AND st.account_status='ACTIVE' ");
+
+        List<Object> parameters=new ArrayList<>();
+        parameters.add(userId);
+
+        if(search!=null&&!search.trim().isEmpty()) {
+            sql.append("AND (LOWER(st.reg_num) LIKE LOWER(?) ");
+            sql.append("OR LOWER(st.name) LIKE LOWER(?)) ");
+
+            String value="%"+search.trim()+"%";
+
+            parameters.add(value);
+            parameters.add(value);
+        }
+
+        if(subjectCode!=null&&!subjectCode.trim().isEmpty()) {
+            sql.append("AND su.subject_code=? ");
+            parameters.add(subjectCode.trim());
+        }
+
+        if(semester!=null&&!semester.trim().isEmpty()) {
+            try {
+                int semesterNumber=Integer.parseInt(semester.trim());
+
+                sql.append("AND se.semester_number=? ");
+                parameters.add(semesterNumber);
+
+            } catch(NumberFormatException e) {
+                return 0;
+            }
+        }
+
+        if(academicYear!=null&&!academicYear.trim().isEmpty()) {
+            sql.append("AND ay.year_name=? ");
+            parameters.add(academicYear.trim());
+        }
+
+        sql.append(") AS filtered_students");
+
+        try(Connection con=DBConnection.getConnection();
+            PreparedStatement ps=con.prepareStatement(sql.toString())) {
+
+            for(int i=0;i<parameters.size();i++) {
+                ps.setObject(i+1,parameters.get(i));
+            }
+
+            try(ResultSet rs=ps.executeQuery()) {
+
+                if(rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        } catch(Exception e) {
+            System.out.println("Error while counting filtered assigned students");
+            System.out.println(e.getMessage());
+        }
+
+        return 0;
+    }
 }

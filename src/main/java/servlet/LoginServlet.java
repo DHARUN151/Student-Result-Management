@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
 import service.LoginService;
+import dao.StudentDAO;
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet{
     private LoginService loginService;
@@ -38,7 +39,31 @@ public class LoginServlet extends HttpServlet{
         session.setAttribute("studentId",user.getStudentId());
         String role=user.getRole();
         if("STUDENT".equals(role)){
-            response.sendRedirect("studentDashboard.jsp");
+            Integer userId=(Integer)session.getAttribute("userId");
+
+            if(userId==null){
+                response.sendRedirect(
+                        request.getContextPath()+"/login.jsp");
+                return;
+            }
+
+            StudentDAO studentDAO=new StudentDAO();
+
+            Integer studentId=
+                    studentDAO.getStudentIdByUserId(userId);
+
+            if(studentId==null){
+                response.sendRedirect(
+                        request.getContextPath()+"/login.jsp?error=student");
+                return;
+            }
+
+            session.setAttribute("studentId",studentId);
+
+            response.sendRedirect(
+                    request.getContextPath()+
+                    "/StudentDashboardServlet");
+
             return;
         }
         if(user.isFirstLogin()){
@@ -57,7 +82,7 @@ public class LoginServlet extends HttpServlet{
             return;
         }
         if("FACULTY".equals(role)){
-            response.sendRedirect("teacherDashboard.jsp");
+            response.sendRedirect("FacultyDashboardServlet");
         }else if("HOD".equals(role)){
             response.sendRedirect("hodDashboard.jsp");
         }else if("EXAM_CELL".equals(role)){

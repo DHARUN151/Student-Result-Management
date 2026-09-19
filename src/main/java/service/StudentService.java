@@ -1,44 +1,70 @@
 package service;
-import model.Student;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import dao.StudentDAO;
 
 public class StudentService {
     private StudentDAO studentDAO;
+
     public StudentService() {
         studentDAO=new StudentDAO();
     }
-    public boolean addStudent(Student student,String doorNo,String street,String city,String district,String state,String pincode,String department,String admissionYear,String semester) {
-        if(student.getRegNum()==null||student.getRegNum().trim().isEmpty()) {
-            return false;
+
+    public Map<String,Object> getStudentDashboard(int studentId) {
+        if(studentId<=0) {
+            return null;
         }
-        if(student.getName()==null||student.getName().trim().isEmpty()) {
-            return false;
+
+        return studentDAO.getStudentDashboard(studentId);
+    }
+
+    public List<Map<String,Object>> getPreviousResults(int studentId) {
+        if(studentId<=0) {
+            return new ArrayList<>();
         }
-        if(student.getDob()==null) {
-            return false;
+
+        return studentDAO.getPreviousResults(studentId);
+    }
+
+    public double getOverallCgpa(int studentId) {
+        if(studentId<=0) {
+            return 0.0;
         }
-        if(department==null||department.trim().isEmpty()) {
-            return false;
+
+        return studentDAO.getOverallCgpa(studentId);
+    }
+    public List<Integer> getPublishedSemesters(int studentId) {
+        if(studentId<=0) {
+            return new ArrayList<>();
         }
-        if(admissionYear==null||admissionYear.trim().isEmpty()) {
-            return false;
+
+        return studentDAO.getPublishedSemesters(studentId);
+    }
+
+    public Map<String,Object> getSemesterResult(
+            int studentId,
+            int semester) {
+
+        if(studentId<=0 || semester<=0) {
+            return null;
         }
-        if(semester==null||semester.trim().isEmpty()) {
-            return false;
+
+        return studentDAO.getSemesterResult(
+                studentId,
+                semester);
+    }
+
+    public List<Map<String,Object>> getSemesterSubjects(
+            int studentId,
+            int semester) {
+
+        if(studentId<=0 || semester<=0) {
+            return new ArrayList<>();
         }
-        try {
-            int year=Integer.parseInt(admissionYear);
-            int semesterNumber=Integer.parseInt(semester);
-            if(year<2000||year>2100) {
-                return false;
-            }
-            if(semesterNumber<1||semesterNumber>8) {
-                return false;
-            }
-            return studentDAO.addStudent(student,doorNo,street,city,district,state,pincode,department,year,semesterNumber);
-        }catch(Exception e) {
-            System.out.println("Invalid student academic details");
-            return false;
-        }
+
+        return studentDAO.getSemesterSubjects(
+                studentId,
+                semester);
     }
 }
