@@ -22,7 +22,13 @@ public class SecurityFilter implements Filter {
         HttpServletResponse httpResponse=(HttpServletResponse)response;
         String path=httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
 
-        if(path.equals("/adminLogin.jsp")||path.equals("/adminLogin")||path.equals("/login")||path.equals("/login.jsp")||path.startsWith("/css/")||path.startsWith("/images/")||path.startsWith("/js/")) {
+        if(path.equals("/adminLogin.jsp")||path.equals("/adminLogin")||path.equals("/login")||path.equals("/login.jsp")||path.startsWith("/css/")||path.startsWith("/images/")||path.startsWith("/js/")|| path.equals("/saml/idp/metadata")|| path.equals("/saml/sp/metadata")|| path.equals("/saml/login")|| path.equals("/saml/idp/sso")|| path.equals("/saml/idp/sso")
+        		|| path.equals("/saml/idp/authenticate")
+        		|| path.equals("/saml/idp/2fa")
+        		|| path.equals("/samlIdpLogin.jsp")
+        		|| path.equals("/samlIdpTwoFactor.jsp")|| path.equals("/saml/acs")
+        		|| path.equals("/saml/idp/sso")
+        		|| path.equals("/saml/idp/2fa")) {
             chain.doFilter(request,response);
             return;
         }
